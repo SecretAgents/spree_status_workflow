@@ -1,0 +1,3 @@
+.arrangement:before, .credit:before, .invoice:before, .delivered:before, .issued:before, .ordering:before, .credit:before {
+    background-color: #FF9300;
+}

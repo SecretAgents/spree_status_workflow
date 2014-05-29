@@ -1,0 +1,17 @@
+---
+ru:
+  spree:
+    payment_states:
+      processing: оплачивается
+      invoice: счет выставлен
+    order_status:
+      ordering: "Оформление"
+      issued: "Оформлен"
+      payment: "Оплачивается"
+      paid: "Оплачен"
+      arrangement: "Компоновка"
+      delivered: "Доставляется"
+      ready: "Готов к отгрузке"
+      shipped: "Отгружен"
+      cart: "Корзина"
+
