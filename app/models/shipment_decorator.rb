@@ -36,18 +36,12 @@ Spree::Shipment.class_eval do
     after_transition to: :shipped, do: :after_ship
 
     event :cancel do
-      transition to: :canceled, from: [:pending, :ready]
+      transition to: :canceled, from: any
     end
     after_transition to: :canceled, do: :after_cancel
 
     event :resume do
-      transition from: :canceled, to: :ready, if: lambda { |shipment|
-        shipment.determine_state(shipment.order) == :ready
-      }
-      transition from: :canceled, to: :pending, if: lambda { |shipment|
-        shipment.determine_state(shipment.order) == :ready
-      }
-      transition from: :canceled, to: :pending
+      transition from: :canceled, to: :arrangement
     end
     after_transition from: :canceled, to: [:pending, :ready], do: :after_resume
   end

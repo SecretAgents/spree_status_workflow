@@ -14,4 +14,8 @@ ru:
       ready: "Готов к отгрузке"
       shipped: "Отгружен"
       cart: "Корзина"
+      canceled: "Отменен"
+    shipment_states:
+      canceled: отменен
+   
 

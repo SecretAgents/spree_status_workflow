@@ -7,9 +7,10 @@ Spree::Order.class_eval do
     go_to_state :address
     go_to_state :delivery
     go_to_state :payment, if: ->(order) {
-     if order.payment_method.nil? || order.order_type == 1
+                                    # если заказ с телефона или быстрый заказ
+      if order.payment_method.nil? || order.order_type == 1 || order.order_type == 3
         false
-     else
+      else
         order.payment_method.method_type != 'cash_on_delivery'
       end
     }
@@ -18,6 +19,7 @@ Spree::Order.class_eval do
 
     remove_transition from: :delivery, to: :confirm
     remove_transition from: :payment, to: :confirm
+    remove_transition from: :address, to: :confirm
   end
 
   # state machine for status
@@ -40,7 +42,7 @@ Spree::Order.class_eval do
             order.payment_state == 'completed'
       }
       transition from: [:paid, :issued], to: :arrangement, if: lambda { |order|
-        order.shipment_state == 'arrangement'
+        order.shipment_state == 'arrangement' and  order.payment_state != 'invoice'
       }
       transition from: :arrangement, to: :ready, if: lambda { |order|
         order.shipment_state == 'ready'
@@ -49,9 +51,20 @@ Spree::Order.class_eval do
       transition from: :ready, to: :delivered, if: lambda { |order|
         order.shipment_state == 'delivered'
       }
-      transition from: [:delivered, :ready], to: :shipped, if: lambda { |order|
+      transition from: any, to: :shipped, if: lambda { |order|
         order.shipment_state == 'shipped'
       }
+
+      transition from: any, to: :canceled, if: lambda { |order|
+        order.state == 'canceled'
+      }
+      transition from: :canceled, to: :payment, if: lambda { |order|
+        order.payment_state == 'invoice'
+      }
+      transition from: :canceled, to: :arrangement, if: lambda { |order|
+        order.payment_state != 'invoice'
+      }
+
     end
   end
 
@@ -101,6 +114,18 @@ Spree::Order.class_eval do
       else
         return 'С сайта'
     end
+  end
+
+  def allow_cancel?
+    state != 'canceled' and state != 'shipped'
+  end
+
+  def after_cancel
+    shipments.each { |shipment| shipment.cancel! }
+    #payments.completed.each { |payment| payment.credit! }
+
+    send_cancel_email
+    self.update_column(:payment_state, 'void') unless shipped?
   end
 
 end

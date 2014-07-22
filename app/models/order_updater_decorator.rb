@@ -1,17 +1,32 @@
 Spree::OrderUpdater.class_eval do
 
   def update_payment_state
+    state_priorities = {
+        :invoice => 9,
+        :credit => 9,
+        :failed => 8,
+        :completed => 11,
+        :paid => 12,
+        :void => 8,
+        :processing => 10
+    }
 
-    # line_item are empty when user empties cart
-    #if line_items.empty? || round_money(order.payment_total) < round_money(order.total)
-      if payments.each.first.nil?
-        order.payment_state = nil
-      else
-        order.payment_state = payments.each.first.state
+    if payments.each.first.nil?
+      order.payment_state = nil
+    else
+      result_state = payments.each.first.state
+
+      payments.each do |payment|
+        if state_priorities[payment.state.to_sym] > state_priorities[result_state.to_sym]
+          result_state = payment.state
+        end
       end
 
-      order.change_status
-    ##end
+      order.payment_state = result_state
+    end
+
+    order.change_status
+
     order.state_changed('payment')
   end
 
@@ -21,7 +36,8 @@ Spree::OrderUpdater.class_eval do
       :arrangement => 10,
       :ready => 8,
       :delivered => 9,
-      :shipped => 7
+      :shipped => 7,
+      :canceled => 11
     }
 
     if order.backordered?
