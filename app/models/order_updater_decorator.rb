@@ -33,11 +33,12 @@ Spree::OrderUpdater.class_eval do
   def update_shipment_state
 
     state_priorities = {
-      :arrangement => 10,
-      :ready => 8,
-      :delivered => 9,
-      :shipped => 7,
-      :canceled => 11
+        :arrangement => 10,
+        :ready => 8,
+        :delivered => 9,
+        :shipped => 7,
+        :canceled => 11,
+        :empty_state => 6
     }
 
     if order.backordered?

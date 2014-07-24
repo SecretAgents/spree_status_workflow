@@ -6,7 +6,7 @@ Spree::Shipment.class_eval do
   state_machines.clear
 
   # shipment state machine (see http://github.com/pluginaweek/state_machine/tree/master for details)
-  state_machine initial: :arrangement, use_transactions: false do
+  state_machine initial: :empty_state, use_transactions: false do
     event :ready do
 
     end
@@ -16,6 +16,9 @@ Spree::Shipment.class_eval do
     end
 
     event :ship do
+
+      transition from: :empty_state, to: :arrangement
+
       # самовывоз
       transition from: :ready, to: :shipped, if: lambda { |shipment|
         shipment.shipping_method.id == 1
@@ -53,6 +56,8 @@ Spree::Shipment.class_eval do
 
   def next_state
     case state
+      when 'empty_state'
+        return :arrangement
       when 'arrangement'
         return :ready
       when 'ready'

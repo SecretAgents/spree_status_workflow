@@ -17,5 +17,6 @@ ru:
       canceled: "Отменен"
     shipment_states:
       canceled: отменен
+      empty_state: Нет
    
 

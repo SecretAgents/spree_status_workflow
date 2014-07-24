@@ -41,8 +41,13 @@ Spree::Order.class_eval do
         order.payment_method.method_type != 'cash_on_delivery' and
             order.payment_state == 'completed'
       }
-      transition from: [:paid, :issued], to: :arrangement, if: lambda { |order|
-        order.shipment_state == 'arrangement' and  order.payment_state != 'invoice'
+
+      transition from: :paid, to: :issued, if: lambda { |order|
+        order.payment_state == 'completed'
+      }
+
+      transition from: :issued, to: :arrangement, if: lambda { |order|
+        order.shipment_state == 'arrangement' and order.payment_state != 'invoice'
       }
       transition from: :arrangement, to: :ready, if: lambda { |order|
         order.shipment_state == 'ready'
