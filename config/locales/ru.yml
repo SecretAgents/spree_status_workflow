@@ -10,6 +10,18 @@ ru:
     delivered: доставляется
     canceled: отменен
     empty_state: Нет
+  payment_states:
+    balance_due: частично
+    checkout: оформляется
+    completed: оплачен
+    credit_owed: в кредит
+    failed: ошибка
+    paid: оплачен
+    pending: в ожидании
+    processing: в обработке
+    void: отменен
+    invoice: счет выставлен
+    credit: в кредит
   spree:
     payment_states:
       balance_due: частично
