@@ -4,6 +4,7 @@ ru:
     payment_states:
       processing: оплачивается
       invoice: счет выставлен
+      credit: в кредит
     order_status:
       ordering: "Оформление"
       issued: "Оформлен"
