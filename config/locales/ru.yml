@@ -12,7 +12,15 @@ ru:
     empty_state: Нет
   spree:
     payment_states:
-      processing: оплачивается
+      balance_due: частично
+      checkout: оформляется
+      completed: оплачен
+      credit_owed: в кредит
+      failed: ошибка
+      paid: оплачен
+      pending: в ожидании
+      processing: в обработке
+      void: отменен
       invoice: счет выставлен
       credit: в кредит
     order_status:
