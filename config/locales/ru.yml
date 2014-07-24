@@ -16,7 +16,12 @@ ru:
       cart: "Корзина"
       canceled: "Отменен"
     shipment_states:
+      backorder: задерживается
+      partial: частично
+      pending: ожидает
+      ready: готов к отгрузке
+      shipped: отгружен
+      arrangement: компоновка
+      delivered: доставляется
       canceled: отменен
       empty_state: Нет
-   
-
