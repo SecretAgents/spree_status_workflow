@@ -37,6 +37,7 @@ Spree::Shipment.class_eval do
 
     end
     after_transition to: :shipped, do: :after_ship
+    after_transition to: any, do: :update_order_status
 
     event :cancel do
       transition to: :canceled, from: any
@@ -72,6 +73,12 @@ Spree::Shipment.class_eval do
       else
         nil
     end
+  end
+
+  private
+
+  def update_order_status
+    order.updater.update_shipment_state
   end
 
 end
