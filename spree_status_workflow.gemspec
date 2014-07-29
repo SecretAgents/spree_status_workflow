@@ -2,7 +2,7 @@
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = 'spree_status_workflow'
-  s.version     = '1.0.3'
+  s.version     = '1.0.4'
   s.summary     = 'New status workflow in spree'
   s.required_ruby_version = '>= 1.8.7'
 
