@@ -21,14 +21,14 @@ Spree::Shipment.class_eval do
 
       # самовывоз
       transition from: :ready, to: :shipped, if: lambda { |shipment|
-        shipment.shipping_method.id == 1
+        shipment.shipping_method.id != shipment.courier_shipment_method_id
       }
       # курьер
       transition from: :delivered, to: :shipped, if: lambda { |shipment|
-        shipment.shipping_method.id == 2
+        shipment.shipping_method.id == shipment.courier_shipment_method_id
       }
       transition from: :ready, to: :delivered, if: lambda { |shipment|
-        shipment.shipping_method.id == 2
+        shipment.shipping_method.id == shipment.courier_shipment_method_id
       }
 
 
@@ -63,7 +63,7 @@ Spree::Shipment.class_eval do
         return :ready
       when 'ready'
         # самовывоз
-        if self.shipping_method.id == 1
+        if self.shipping_method.id != courier_shipment_method_id
           return :shipped
         else
           return :delivered
@@ -72,6 +72,16 @@ Spree::Shipment.class_eval do
         return :shipped
       else
         nil
+    end
+  end
+
+  def courier_shipment_method_id
+    key = 'курьер'
+    method = Spree::ShippingMethod.where('lower(name) LIKE ?', "%#{key}%").first
+    if method.nil?
+      nil
+    else
+      method.id
     end
   end
 
