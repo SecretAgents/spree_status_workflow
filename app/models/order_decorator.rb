@@ -32,7 +32,7 @@ Spree::Order.class_eval do
         order.order_type == 1 #from phone
       }
       transition from: :ordering, to: :issued, if: lambda { |order|
-        order.state == 'complete' and order.payment_method.method_type == 'cash_on_delivery'
+        order.state == 'complete' and (order.payment_method.nil? or order.payment_method.method_type == 'cash_on_delivery')
       }
       transition from: :ordering, to: :payment, if: lambda { |order|
         order.state == 'payment'
