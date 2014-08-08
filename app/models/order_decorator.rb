@@ -131,6 +131,28 @@ Spree::Order.class_eval do
 
     send_cancel_email
     self.update_column(:payment_state, 'void') unless shipped?
+    self.update_column(:status, 'canceled')
+  end
+
+  def after_resume
+    shipments.each { |shipment| shipment.resume! }
+    consider_risk
+
+    if payments.first.nil?
+      self.payment_state = 'none'
+    else
+      self.payment_state = payments.first.state
+    end
+
+    if self.status == 'canceled'
+      if self.state_changes.last(2).count >= 2 and self.state_changes.last(2)[0].previous_state == 'cart'
+        self.update_column(:status, 'ordering')
+      end
+    end
+  end
+
+  def ensure_line_items_present
+    true
   end
 
 end
