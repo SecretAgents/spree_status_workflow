@@ -48,7 +48,7 @@ Spree::OrderUpdater.class_eval do
 
       result_state = shipments.states.first
       shipment_states.each do |state|
-        if state_priorities[state.to_sym] > state_priorities[result_state.to_sym]
+        if !state_priorities[state.to_sym].nil? and state_priorities[state.to_sym] > state_priorities[result_state.to_sym]
           result_state = state
         end
       end

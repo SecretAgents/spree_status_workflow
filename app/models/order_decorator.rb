@@ -129,6 +129,13 @@ Spree::Order.class_eval do
     shipments.each { |shipment| shipment.cancel! }
     #payments.completed.each { |payment| payment.credit! }
 
+    # Снижаем популярность товара, если заказ отменен
+    line_items.each do |line_item|
+      line_item.product.popularity -= line_item.quantity
+      line_item.product.popularity = 0 if line_item.product.popularity < 0
+      line_item.product.save
+    end
+
     send_cancel_email
     self.update_column(:payment_state, 'void') unless shipped?
     self.update_column(:status, 'canceled')
@@ -154,5 +161,15 @@ Spree::Order.class_eval do
   def ensure_line_items_present
     true
   end
+
+  def finalize_with_popularity!
+    finalize_without_popularity!
+    # Увеличиваем популярность товара, когда его купили
+    line_items.each do |line_item|
+      line_item.product.popularity += line_item.quantity
+      line_item.product.save
+    end
+  end
+  alias_method_chain :finalize!, :popularity
 
 end
