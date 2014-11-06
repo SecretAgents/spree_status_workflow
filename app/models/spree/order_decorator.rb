@@ -211,9 +211,7 @@ Spree::Order.class_eval do
   end
 
   def assign_by_phone(phone)
-    user_just_registered = false
     user = Spree::User.find_by_phone phone
-    user_just_registered = true if user.nil?
     address = Spree::Address.default user
     address.phone = phone
     password = Spree::User.generate_password
@@ -224,10 +222,6 @@ Spree::Order.class_eval do
     )
     unless user.nil?
       # TODO: Отправить пароль по email или в sms
-      # Раскомментировать, если хотим сразу залогинить вновь созданного пользователя:
-      # set_flash_message(:notice, :signed_up)
-      # sign_in(:spree_user, @user)
-      # session[:spree_user_signup] = true
 
       self.email = user.email unless user.email.nil?
       self.user_id = user.id
@@ -237,7 +231,6 @@ Spree::Order.class_eval do
       self.use_billing = true
     end
     save
-    user_just_registered
   end
 
   def after_cancel

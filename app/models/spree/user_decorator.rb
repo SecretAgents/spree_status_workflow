@@ -21,6 +21,10 @@ Spree::User.class_eval do
     callback.raw_filter.attributes.delete :email if callback.raw_filter.is_a?(ActiveModel::Validations::PresenceValidator)
   end
 
+  def just_created?
+    orders.count < 2
+  end
+
   def self.generate_password(num = 3)
     SecureRandom.hex num
   end

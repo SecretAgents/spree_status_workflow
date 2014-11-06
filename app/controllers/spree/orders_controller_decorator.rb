@@ -18,7 +18,8 @@ Spree::OrdersController.class_eval do
 
     if params[:fast_order].present?
 
-      @user_just_registered = @order.assign_by_phone phone
+      @order.assign_by_phone phone
+      authenticate_user_if_needed @order.user
       @order.add_payment_if_needed!
       @order.create_proposed_shipments
       @order.create_comment
@@ -30,6 +31,7 @@ Spree::OrdersController.class_eval do
       if @order.completed?
         PreordersMailer.new_message(@order).deliver
         @current_order = nil
+        session[:order_id] = nil
         flash.notice = Spree.t(:order_processed_successfully)
         flash['order_completed'] = true
         redirect_to order_path(@order)
@@ -41,7 +43,8 @@ Spree::OrdersController.class_eval do
       respond_with(@order) do |format|
         format.html do
           if params.has_key?(:checkout)
-            @user_just_registered = @order.assign_by_phone phone
+            @order.assign_by_phone phone
+            authenticate_user_if_needed @order.user
             @order.add_payment_if_needed!
             @order.create_proposed_shipments
             @order.create_comment
@@ -60,5 +63,15 @@ Spree::OrdersController.class_eval do
       respond_with(@order)
     end
   end
+
+  private
+    def authenticate_user_if_needed(user)
+      if flash['order_completed'] && user
+        # Раскомментировать, если хотим сразу залогинить вновь созданного пользователя:
+        set_flash_message(:notice, :signed_up)
+        sign_in(:spree_user, user)
+        session[:spree_user_signup] = true
+      end
+    end
 
 end
