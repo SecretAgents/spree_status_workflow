@@ -1,11 +1,9 @@
 Spree::Payment.class_eval do
 
-  scope :completed, -> { with_state('completed') }
-  scope :pending, -> { with_state('pending') }
-  scope :failed, -> { with_state('failed') }
   scope :invoice, -> { with_state('invoice') }
   scope :credit, -> { with_state('credit') }
-  state_machines.clear
+
+  state_machines.clear if respond_to?(:state_machines)
 
   state_machine :initial => lambda {|payment|
     method_name = Spree::PaymentMethod.find_by_id(payment.payment_method_id)
