@@ -215,11 +215,12 @@ Spree::Order.class_eval do
     address = Spree::Address.default user
     address.phone = phone
     password = Spree::User.generate_password
-    user ||= Spree::User.create(
-        phone: phone,
+    user ||= Spree::User.new(
         bill_address: address,
         password: password
     )
+    user.phone = phone if user.phone.blank?
+    user.save
     unless user.nil?
       # TODO: Отправить пароль по email или в sms
 

@@ -25,6 +25,20 @@ Spree::User.class_eval do
     orders.count < 2
   end
 
+  def phone_regexp
+    /\A\+7(\d{3})(\d{7})\z/
+  end
+
+  def phone_code
+    return '' if phone.nil?
+    phone.scan(phone_regexp)[0][0]
+  end
+
+  def phone_body
+    return '' if phone.nil?
+    phone.scan(phone_regexp)[0][1]
+  end
+
   def self.generate_password(num = 3)
     SecureRandom.hex num
   end
