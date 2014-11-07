@@ -48,11 +48,13 @@ Spree::CheckoutController.class_eval do
       params[:order].delete :comment
       @order.special_instructions = comment.comment
     end
-    params[:order][:shipments_attributes].each do |key, order_shipment|
-      shipment = @order.shipments.find_by_id order_shipment[:id]
-      unless shipment.nil?
-        shipment.selected_shipping_rate_id = order_shipment[:selected_shipping_rate_id]
-        shipment.save
+    if params[:order][:shipments_attributes].present?
+      params[:order][:shipments_attributes].each do |key, order_shipment|
+        shipment = @order.shipments.find_by_id order_shipment[:id]
+        unless shipment.nil?
+          shipment.selected_shipping_rate_id = order_shipment[:selected_shipping_rate_id]
+          shipment.save
+        end
       end
     end
     if @order.update_from_params(params, attributes, request.headers.env)
