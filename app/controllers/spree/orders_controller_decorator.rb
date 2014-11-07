@@ -29,7 +29,6 @@ Spree::OrdersController.class_eval do
       @order.complete
 
       if @order.completed?
-        PreordersMailer.new_message(@order).deliver
         @current_order = nil
         session[:order_id] = nil
         flash.notice = Spree.t(:order_processed_successfully)
