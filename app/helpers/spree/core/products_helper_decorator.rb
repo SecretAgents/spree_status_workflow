@@ -4,4 +4,8 @@ Spree::ProductsHelper.class_eval do
     [:housing, :building, :room, :porch, :floor, :elevators, :subway_station, :intercom_code]
   end
 
+  def new_user_params
+    [:phone, :name]
+  end
+
 end
