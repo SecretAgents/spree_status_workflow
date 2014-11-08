@@ -16,13 +16,12 @@ Spree::Order.class_eval do
 
   checkout_flow do
     remove_checkout_step :confirm
-    remove_checkout_step :delivery
     remove_checkout_step :address
 
-    go_to_state :ordering
+    go_to_state :delivery
     go_to_state :payment, if: ->(order) {
       # если заказ с телефона или быстрый заказ
-      if order.payment_method.nil? || order.order_type == get_type_id(:phone) || order.order_type == get_type_id(:express)
+      if order.payment_method.nil? || order.type == :phone || order.type == :express
         false
       else
         order.payment_method.method_type != 'cash_on_delivery'
@@ -111,7 +110,12 @@ Spree::Order.class_eval do
 
     if states[:payment]
       before_transition :to => :complete do |order|
-        order.process_payments! if order.payment_required?
+        if order.payment_required? && order.payments.valid.empty?
+          order.errors.add(:base, Spree.t(:no_payment_found))
+          false
+        elsif order.payment_required?
+          order.process_payments!
+        end
       end
     end
 
@@ -125,8 +129,11 @@ Spree::Order.class_eval do
     if states[:ordering]
       before_transition :to => :ordering, :do => :create_proposed_shipments
       before_transition :to => :ordering, :do => :ensure_available_shipping_rates
+      before_transition :to => :ordering, :do => :set_shipments_cost
+      before_transition :to => :ordering, :do => :assign_default_addresses!
       before_transition :from => :ordering, :do => :apply_free_shipping_promotions
       before_transition :from => :ordering, :do => :create_tax_charge!
+      before_transition :from => :ordering, :do => :persist_user_address!
     end
 
     after_transition :to => :complete, :do => :finalize!
@@ -139,6 +146,11 @@ Spree::Order.class_eval do
     end
   end
 
+  def payment_state
+    return payments.first.state if payments.any?
+    self.attributes[:payment_state]
+  end
+
   def self.get_type_id(symbol)
     TYPES.key symbol
   end
@@ -149,6 +161,10 @@ Spree::Order.class_eval do
 
   def type
     TYPES[order_type]
+  end
+
+  def address?
+    !!bill_address
   end
 
   def express?
@@ -187,28 +203,34 @@ Spree::Order.class_eval do
   end
 
   def order_type_string
-    'С сайта'
-    'С телефона' if type == :phone
+    return 'С телефона' if type == :phone
+    return 'Быстрый заказ' if type == :express
+    return 'С сайта'
   end
 
   def add_payment_if_needed!
     if self.payments.empty?
       self.payments.create!(
           :amount => self.total,
+          :state => :credit,
           :payment_method => Spree::PaymentMethod.where(
               :type => 'Spree::CashOnDelivery::PaymentMethod',
               :environment => Rails.env
           ).first
       )
+      self.payment_state = self.payments.first.state
     end
   end
 
-  def create_comment
-    if self.comments.empty?
-      self.comments.build
-      save
-    end
+  def deliver_order_confirmation_email_with_check
+    deliver_order_confirmation_email_without_check unless self.email.blank?
   end
+  alias_method_chain :deliver_order_confirmation_email, :check
+
+  def send_cancel_email_with_check
+    send_cancel_email_without_check unless self.email.blank?
+  end
+  alias_method_chain :send_cancel_email, :check
 
   def assign_by_phone(phone)
     user = Spree::User.find_by_phone phone

@@ -1,0 +1,130 @@
+title Распечатать Счет на оплату
+basefont face="Arial" size="8" 
+  link href="chrome-extension://cpngackimfmofbokmjmljamhdncknpmg/style.css" rel="stylesheet" type="text/css" 
+    script charset="utf-8" src="chrome-extension://cpngackimfmofbokmjmljamhdncknpmg/js/page_context.js" type="text/javascript" 
+    body cz-shortcut-listen="true" screen_capture_injected="true" 
+      div align="left" style=("width: 700px;") 
+        table#table3 border="1" bordercolordark="#000000" bordercolorlight="#000000" cellpadding="2" cellspacing="0" width="400" 
+          tbody
+            - unless @order.bill_address.nil?
+              tr
+                td height="90" valign="top"
+                  font size="4"
+                    = 'г ' + @order.bill_address.city + ',' unless @order.bill_address.city.blank?
+                    = 'м ' + @order.bill_address.subway_station + ',' unless @order.bill_address.subway_station.blank?
+                    = 'ул ' + @order.bill_address.address1 + ',' unless @order.bill_address.address1.blank?
+                    = 'д ' + @order.bill_address.address2 + ',' unless @order.bill_address.address2.blank?
+                    = 'корп. ' + @order.bill_address.housing + ',' unless @order.bill_address.housing.blank?
+                    = 'кв ' + @order.bill_address.room + ',' unless @order.bill_address.room.blank?
+                    = 'под ' + @order.bill_address.porch + ',' unless @order.bill_address.porch.blank?
+                    = 'эт ' + @order.bill_address.floor + ',' unless @order.bill_address.floor.blank?
+                    br
+                      = 'Домофон ' + @order.bill_address.intercom_code + ',' unless @order.bill_address.intercom_code.blank?
+                      br
+                        | Лифт: #{@order.bill_address.elevators ? 'Есть' : 'Нет'}
+                        br
+            tr
+              td height="26" valign="top" 
+                font size="2" 
+                  | Номер заказа: #{@order.number}
+            tr
+              td height="26" valign="top" 
+                font size="3" 
+                  | Комментарий: #{@order.special_instructions}
+            tr
+              td height="26" valign="top" 
+                font size="3" 
+                  b
+                    = "Тел: #{@order.user.phone}" unless @order.user.nil?
+            - unless @order.bill_address.nil?
+              tr
+                td height="26" valign="top"
+                  font size="3"
+                    = "Доп. тел: #{@order.bill_address.phone}" unless @order.bill_address.nil?
+        br
+        #order-date style=("float: right; font-size: 12px;")
+          - order_date = Time.at(@order.created_at)
+          | «#{order_date.mday}» #{I18n.l(order_date, format: "%B")} #{order_date.year} г
+        - unless @order.bill_address.nil?
+          #order-customer
+            b
+              | Кому: #{"#{@order.bill_address.firstname}" unless @order.bill_address.firstname.nil?} #{"#{@order.bill_address.lastname}" unless @order.bill_address.lastname.nil?}
+        br
+        #doberman
+          b От: «Зоомагазин Доберман» (ИП Васнева)
+        br
+        table#table3 border="1" bordercolordark="#000000" bordercolorlight="#000000" cellpadding="2" cellspacing="0" width="700" 
+          tbody
+            tr
+              td height="27" width="26" 
+                font size="2" 
+                  b №
+              td height="27" 
+                font size="2" 
+                  b Наименование товара
+              td height="27" width="79" 
+                font size="2" 
+                  b Кол-во
+              td height="27" width="63" 
+                font size="2" 
+                  b Цена
+              td height="27" width="84" 
+                font size="2" 
+                  b Сумма
+            - @order.line_items.each_with_index do |item, index|
+              tr
+                td width="26" 
+                  font size="2" = index + 1
+                td
+                  font size="2" = item.variant.product.name
+                td width="79" 
+                  font size="2" = item.quantity
+                td style=("width: 120px;") 
+                  font size="2" = item.single_money.to_html
+                td style=("width: 120px;") 
+                  font size="2" = line_item_shipment_price(item, item.quantity)
+        br
+        table style=("float: right") 
+          tr
+            td
+              b Всего:
+            td
+              b= @order.display_item_total.to_html
+          /tr
+            td
+              b Персональная скидка:
+            td
+              b= sprintf('%.2f%', 100 * @order.get_personal_discount / @order.item_total) rescue 0
+          tr
+            td
+              b Сумма скидки:
+            td
+              b
+                = Spree::Money.new(@order.get_personal_discount).to_s.html_safe rescue 0
+          - another_discounts(@order).each do |discount|
+            tr
+              td
+                b
+                  = discount.label
+              td
+                b
+                  = Spree::Money.new(discount.amount).to_s.html_safe
+          - if !@order.shipments.nil? and @order.shipments.any?
+            tr
+              td
+                b Доставка
+              td
+                b
+                  = Spree::Money.new(@order.shipments.first.cost).to_s.html_safe rescue 0
+          tr
+            td
+              b Итого:
+            td
+              b
+                = @order.display_total.to_html
+        br
+        div style=("clear: both") 
+        br
+        br
+        #customer
+          b Подпись клиента: _______________________________________________

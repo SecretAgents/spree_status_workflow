@@ -39,15 +39,6 @@ Spree::CheckoutController.class_eval do
       end
       @order.user.save
     end
-    unless params[:order][:comment][:comment].blank?
-      @order.create_comment
-      comment = @order.comments.first
-      comment.comment = params[:order][:comment][:comment]
-      comment.user_id = @order.user_id
-      comment.save
-      params[:order].delete :comment
-      @order.special_instructions = comment.comment
-    end
     if params[:order][:shipments_attributes].present?
       params[:order][:shipments_attributes].each do |key, order_shipment|
         shipment = @order.shipments.find_by_id order_shipment[:id]
@@ -57,6 +48,7 @@ Spree::CheckoutController.class_eval do
         end
       end
     end
+    @order.state = :ordering if params[:state] == 'delivery'
     if @order.update_from_params(params, attributes, request.headers.env)
       @order.temporary_address = !params[:save_user_address]
       unless @order.complete

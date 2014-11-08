@@ -22,11 +22,10 @@ Spree::OrdersController.class_eval do
       authenticate_user_if_needed @order.user
       @order.add_payment_if_needed!
       @order.create_proposed_shipments
-      @order.create_comment
       @order.order_type = Spree::Order.get_type_id :express
       @order.cart
 
-      @order.complete
+      @order.complete!
 
       if @order.completed?
         @current_order = nil
@@ -46,10 +45,9 @@ Spree::OrdersController.class_eval do
             authenticate_user_if_needed @order.user
             @order.add_payment_if_needed!
             @order.create_proposed_shipments
-            @order.create_comment
             @order.order_type = Spree::Order.get_type_id :site
             if @order.cart?
-              @order.order
+              @order.order!
             end
             redirect_to checkout_state_path(@order.checkout_steps.first)
           else
@@ -60,6 +58,19 @@ Spree::OrdersController.class_eval do
       end
     else
       respond_with(@order)
+    end
+  end
+
+  def print
+    @user = spree_current_user
+    @order = Spree::Order.find_by_number(params[:id])
+    raise ActiveRecord::RecordNotFound if @order.nil? || @user.nil? || !(@order.user_id == @user.id || @user.admin?)
+
+    if @order.status == 'cart'
+      flash[:error] = 'Заказ не оформлен!'
+      redirect_to :back
+    else
+      render layout: false
     end
   end
 

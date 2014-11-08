@@ -6,7 +6,7 @@ Spree::Core::Engine.add_routes do
   # get 'products' => 'taxons#show'
   # get 'products/sign_in_after_save/:id' => 'products#sign_in_after_save', as: :product_sign_in_after_save
   # post 'checkout/remind_password' => 'checkout#remind_password'
-  # get 'orders/:id/print', to: 'orders#print', as: :order_print_bill
+  get 'orders/:id/print', to: 'orders#print', as: :order_print_bill
   # get 'sign_in' => 'users#sign_in'
 
   # put 'reset_user_password' => 'users#generate_password'
