@@ -4,7 +4,7 @@ Spree::OrdersController.class_eval do
     phone = nil
     if params[:phone].present?
       if params[:phone_code][0] != '' && params[:phone][0] != ''
-        phone = '+7' + params[:phone_code][0] + params[:phone][0]
+        phone = ['+7', params[:phone_code][0], params[:phone][0]].join('')
         if (phone =~ /^\+7\d{10}$/).nil?
           flash[:error] = 'Неверно введён телефон.'
           redirect_to cart_path and return
