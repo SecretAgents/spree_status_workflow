@@ -69,10 +69,10 @@ Spree::Shipment.class_eval do
     end
     after_transition from: :canceled, to: [:pending, :ready, :arrangement], do: :after_resume
 
-    before_transition to: :arrangement, do: :defore_arrange
-    before_transition to: :ready, do: :defore_ready
-    before_transition to: :delivering, do: :defore_deliver
-    before_transition to: :shipped, do: :defore_ship
+    before_transition to: :arrangement, do: :before_arrange
+    before_transition to: :ready, do: :before_ready
+    before_transition to: :delivering, do: :before_deliver
+    before_transition to: :shipped, do: :before_ship
 
     after_transition do |shipment, transition|
       shipment.state_changes.create!(
@@ -83,19 +83,19 @@ Spree::Shipment.class_eval do
     end
   end
 
-  def defore_arrange
+  def before_arrange
     self.order.arrange
   end
 
-  def defore_ready
+  def before_ready
     self.order.ready
   end
 
-  def defore_deliver
+  def before_deliver
     self.order.deliver
   end
 
-  def defore_ship
+  def before_ship
     self.order.ship
   end
 
