@@ -168,7 +168,7 @@ Spree::Order.class_eval do
   end
 
   def set_type(symbol)
-    self.type = Spree::Order.get_type_id symbol
+    self.order_type = Spree::Order.get_type_id symbol
   end
 
   def address?
