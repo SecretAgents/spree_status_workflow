@@ -146,6 +146,10 @@ Spree::Order.class_eval do
     end
   end
 
+  def self.shipped
+    where(status: 'shipped')
+  end
+
   def payment_state
     return payments.first.state if payments.any?
     self.attributes[:payment_state]
@@ -161,6 +165,10 @@ Spree::Order.class_eval do
 
   def type
     TYPES[order_type]
+  end
+
+  def set_type(symbol)
+    self.type = Spree::Order.get_type_id symbol
   end
 
   def address?

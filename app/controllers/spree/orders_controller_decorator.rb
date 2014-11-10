@@ -21,11 +21,10 @@ Spree::OrdersController.class_eval do
       @order.assign_by_phone phone
       authenticate_user_if_needed @order.user
       @order.add_payment_if_needed!
-      @order.create_proposed_shipments
       @order.order_type = Spree::Order.get_type_id :express
       @order.cart
 
-      @order.complete!
+      @order.complete
 
       if @order.completed?
         @current_order = nil
@@ -44,14 +43,15 @@ Spree::OrdersController.class_eval do
             @order.assign_by_phone phone
             authenticate_user_if_needed @order.user
             @order.add_payment_if_needed!
-            @order.create_proposed_shipments
-            @order.order_type = Spree::Order.get_type_id :site
-            if @order.cart?
-              @order.order!
+            @order.set_type :site
+            @order.order if @order.cart?
+            if @order.ordering?
+              redirect_to checkout_state_path(@order.checkout_steps.first)
+            else
+              respond_with(@order)
             end
-            redirect_to checkout_state_path(@order.checkout_steps.first)
           else
-            redirect_to cart_path
+            respond_with(@order)
           end
         end
         format.js
