@@ -21,7 +21,7 @@ Spree::OrdersController.class_eval do
       @order.assign_by_phone phone
       authenticate_user_if_needed @order.user
       @order.add_payment_if_needed!
-      @order.order_type = Spree::Order.get_type_id :express
+      @order.set_type :express
       @order.cart
 
       @order.complete
