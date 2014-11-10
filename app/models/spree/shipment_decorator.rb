@@ -37,18 +37,18 @@ Spree::Shipment.class_eval do
 
     event :deliver do
       transition from: :ready, to: :delivering, if: lambda { |shipment|
-        !Spree::Shipment.non_delivering_methods.include?(shipment.shipping_method.id)
+        !shipment.shipping_method.nil? && !Spree::Shipment.non_delivering_methods.include?(shipment.shipping_method.id)
       }
     end
 
     event :ship do
       # самовывоз
       transition from: :ready, to: :shipped, if: lambda { |shipment|
-        Spree::Shipment.non_delivering_methods.include?(shipment.shipping_method.id)
+        !shipment.shipping_method.nil? && Spree::Shipment.non_delivering_methods.include?(shipment.shipping_method.id)
       }
       # курьер
       transition from: :delivering, to: :shipped, if: lambda { |shipment|
-        !Spree::Shipment.non_delivering_methods.include?(shipment.shipping_method.id)
+        !shipment.shipping_method.nil? && !Spree::Shipment.non_delivering_methods.include?(shipment.shipping_method.id)
       }
     end
     after_transition to: :shipped, do: :after_ship
