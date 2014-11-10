@@ -22,7 +22,7 @@ Spree::OrdersController.class_eval do
       authenticate_user_if_needed @order.user
       @order.add_payment_if_needed!
       @order.set_type :express
-      @order.cart
+      @order.state = 'cart' unless @order.cart?
 
       @order.complete
 
