@@ -45,11 +45,7 @@ Spree::OrdersController.class_eval do
             @order.add_payment_if_needed!
             @order.set_type :site
             @order.order if @order.cart?
-            if @order.ordering?
-              redirect_to checkout_state_path(@order.checkout_steps.first)
-            else
-              respond_with(@order)
-            end
+            redirect_to checkout_state_path(@order.checkout_steps.first)
           else
             respond_with(@order)
           end
