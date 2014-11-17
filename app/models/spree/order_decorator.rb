@@ -137,7 +137,7 @@ Spree::Order.class_eval do
     end
 
     after_transition :to => :complete, :do => :finalize!
-    # after_transition :to => :resumed,  :do => :after_resume
+    after_transition :from => :canceled, :do => :after_resume
     after_transition :to => :canceled, :do => :after_cancel
 
     after_transition :from => any - :cart, :to => any - :complete do |order|
@@ -188,7 +188,7 @@ Spree::Order.class_eval do
   end
 
   def need_return?
-    paid? or shipped?
+    payment_completed? or shipped?
   end
 
   def allow_cancel?
@@ -204,6 +204,10 @@ Spree::Order.class_eval do
 
   def pending_payments
     payments.select(&:invoice?) + payments.select(&:credit?)
+  end
+
+  def payment_completed?
+    payment_state == 'completed'
   end
 
   def paid?
@@ -265,7 +269,7 @@ Spree::Order.class_eval do
   end
 
   def after_cancel
-    shipments.each { |shipment| shipment.cancel! }
+    shipments.each { |shipment| shipment.cancel! unless shipment.canceled? }
     #payments.completed.each { |payment| payment.credit! }
 
     # Снижаем популярность товара, если заказ отменен
@@ -277,10 +281,12 @@ Spree::Order.class_eval do
 
     send_cancel_email
     self.update_column(:payment_state, 'void') unless shipped?
+    self.update_column(:shipment_state, 'canceled') unless shipped?
+    self.save
   end
 
   def after_resume
-    shipments.each { |shipment| shipment.resume! }
+    shipments.each { |shipment| shipment.resume! if shipment.canceled? }
     consider_risk
 
     if payments.first.nil?
@@ -288,6 +294,13 @@ Spree::Order.class_eval do
     else
       self.payment_state = payments.first.state
     end
+
+    if shipments.first.nil?
+      self.shipment_state = 'none'
+    else
+      self.shipment_state = shipments.first.state
+    end
+    self.save
   end
 
   def ensure_line_items_present
