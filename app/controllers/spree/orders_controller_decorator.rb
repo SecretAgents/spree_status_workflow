@@ -2,7 +2,7 @@ Spree::OrdersController.class_eval do
 
   def update
     phone = nil
-    if params[:phone].present?
+    unless params[:phone].nil?
       if params[:phone_code] != '' && params[:phone] != ''
         phone = ['+7', params[:phone_code], params[:phone]].join('')
         if (phone =~ /^\+7\d{10}$/).nil?
@@ -11,7 +11,7 @@ Spree::OrdersController.class_eval do
         end
       end
       if phone.nil?
-        flash[:error] = 'Необходимо ввести телефон.'
+        flash[:error] = 'Ошибка оформления заказа. Пожалуйста, введите номер Вашего телефона.'
         redirect_to cart_path and return
       end
     end
