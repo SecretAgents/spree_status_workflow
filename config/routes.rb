@@ -2,7 +2,7 @@ Spree::Core::Engine.add_routes do
   # get 'account/change_password', to: 'users#change_password', as: :change_password
   # get 'account/address', to: 'users#account_address', as: :account_address
   # get 'orders/clear_cart', to: 'orders#clear_cart', as: :clear_cart_path
-  get 'orders/fast_order_popup', to: 'orders#fast_order_popup', as: :fast_order_popup
+  post 'orders/fast_order', to: 'orders#fast_order', as: :fast_order
   # get 'products' => 'taxons#show'
   # get 'products/sign_in_after_save/:id' => 'products#sign_in_after_save', as: :product_sign_in_after_save
   # post 'checkout/remind_password' => 'checkout#remind_password'

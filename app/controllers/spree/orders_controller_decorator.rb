@@ -1,36 +1,19 @@
 Spree::OrdersController.class_eval do
 
   def update
-    phone = nil
-    unless params[:phone].nil?
-      if params[:phone_code] != '' && params[:phone] != ''
-        phone = ['+7', params[:phone_code], params[:phone]].join('')
-        if (phone =~ /^\+7\d{10}$/).nil?
-          flash[:error] = 'Неверно введён телефон.'
-          redirect_to cart_path and return
-        end
-      end
-      if phone.nil?
-        flash[:error] = 'Ошибка оформления заказа. Пожалуйста, введите номер Вашего телефона.'
-        redirect_to cart_path and return
-      end
+    phone = retrieve_phone
+    if (phone =~ /^\+7\d{10}$/).nil?
+      flash[:error] = 'Неверно введён телефон.'
+      redirect_to cart_path and return
+    end
+    if phone.nil?
+      flash[:error] = 'Ошибка оформления заказа. Пожалуйста, введите номер Вашего телефона.'
+      redirect_to cart_path and return
     end
 
     if params[:fast_order].present?
 
-      @order.assign_by_phone phone
-      authenticate_user_if_needed @order.user
-      @order.add_payment_if_needed!
-      @order.set_type :express
-      @order.state = 'cart' unless @order.cart?
-
-      @order.complete
-
-      if @order.completed?
-        @current_order = nil
-        session[:order_id] = nil
-        flash.notice = Spree.t(:order_processed_successfully)
-        flash['order_completed'] = true
+      if complete_fast_order phone
         redirect_to order_path(@order)
       else
         flash[:error] = 'Ошибка в быстром заказе. Попробуйте перейти к оформлению заказа.'
@@ -57,6 +40,41 @@ Spree::OrdersController.class_eval do
     end
   end
 
+  def fast_order
+    variant = Spree::Variant.find(params[:variant_id])
+    if variant.nil?
+      flash[:error] = 'Продукт не найден'
+      redirect_to products_path and return
+    end
+    phone = retrieve_phone
+    if (phone =~ /^\+7\d{10}$/).nil?
+      flash[:error] = 'Неверно введён телефон.'
+      redirect_to product_path(variant.product) and return
+    end
+    if phone.nil?
+      flash[:error] = 'Ошибка оформления заказа. Пожалуйста, введите номер Вашего телефона.'
+      redirect_to product_path(variant.product) and return
+    end
+
+    @order = current_order(create_order_if_necessary: true)
+    @order.contents.reset
+    populator = Spree::OrderPopulator.new(@order, current_currency)
+    if populator.populate(params[:variant_id], params[:quantity])
+      current_order.ensure_updated_shipments
+    else
+      flash[:error] = 'Ошибка оформления заказа. Пожалуйста, введите номер Вашего телефона.'
+      redirect_to product_path(variant.product) and return
+    end
+
+    if complete_fast_order phone
+      redirect_to order_path(@order)
+    else
+      flash[:error] = 'Ошибка в быстром заказе. Попробуйте перейти к оформлению заказа.'
+      redirect_to product_path(variant.product) and return
+    end
+
+  end
+
   def print
     @user = spree_current_user
     @order = Spree::Order.find_by_number(params[:id])
@@ -77,6 +95,37 @@ Spree::OrdersController.class_eval do
         set_flash_message(:notice, :signed_up)
         sign_in(:spree_user, user)
         session[:spree_user_signup] = true
+      end
+    end
+
+    def retrieve_phone
+      phone = nil
+      unless params[:phone].nil?
+        if params[:phone_code] != '' && params[:phone] != ''
+          phone = ['+7', params[:phone_code], params[:phone]].join('')
+        end
+      end
+      phone
+    end
+
+    def complete_fast_order(phone)
+
+      @order.assign_by_phone phone
+      authenticate_user_if_needed @order.user
+      @order.add_payment_if_needed!
+      @order.set_type :express
+      @order.state = 'cart' unless @order.cart?
+
+      @order.complete
+
+      if @order.completed?
+        @current_order = nil
+        session[:order_id] = nil
+        flash.notice = Spree.t(:order_processed_successfully)
+        flash['order_completed'] = true
+        return true
+      else
+        return false
       end
     end
 
