@@ -62,7 +62,7 @@ Spree::OrdersController.class_eval do
     if populator.populate(params[:variant_id], params[:quantity])
       current_order.ensure_updated_shipments
     else
-      flash[:error] = 'Ошибка оформления заказа. Пожалуйста, введите номер Вашего телефона.'
+      flash[:error] = 'Не удалось добавить товар в корзину.'
       redirect_to product_path(variant.product) and return
     end
 
