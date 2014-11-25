@@ -11,7 +11,7 @@ Spree::Core::Engine.add_routes do
 
   # put 'reset_user_password' => 'users#generate_password'
 
-  # namespace :admin do
-  #   resources :pickup_addresses, as: :pickup_addresses
-  # end
+  namespace :admin do
+    resources :pickup_addresses, as: :pickup_addresses
+  end
 end

@@ -1,0 +1,13 @@
+= render 'spree/admin/shared/configuration_menu'
+
+= content_for :page_title do
+  | Адреса самовывоза
+
+.table-adresses
+  = render 'addresses_table', :addresses => @pickup_addresses
+
+br
+
+= render 'form'
+
+

@@ -2,6 +2,7 @@
 
 Spree::CheckoutController.class_eval do
   skip_filter :check_registration
+  before_filter :set_order_status, :set_pickup_addresses
   # skip_before_filter :verify_authenticity_token, only: :update
 
   helper 'spree/products'
@@ -69,6 +70,12 @@ Spree::CheckoutController.class_eval do
     else
       render :edit
     end
+  end
+
+  private
+
+  def set_pickup_addresses
+    @pickup_addresses = Spree::PickupAddress.all
   end
 
 end

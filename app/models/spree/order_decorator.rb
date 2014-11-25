@@ -131,10 +131,16 @@ Spree::Order.class_eval do
       before_transition :to => :ordering, :do => :ensure_available_shipping_rates
       before_transition :to => :ordering, :do => :set_shipments_cost
       before_transition :to => :ordering, :do => :assign_default_addresses!
-      before_transition :from => :ordering, :do => :apply_free_shipping_promotions
-      before_transition :from => :ordering, :do => :create_tax_charge!
-      before_transition :from => :ordering, :do => :persist_user_address!
     end
+
+    before_transition :from => :cart, :to => :complete, :do => :create_proposed_shipments
+    before_transition :from => :cart, :to => :complete, :do => :ensure_available_shipping_rates
+    before_transition :from => :cart, :to => :complete, :do => :set_shipments_cost
+    before_transition :from => :cart, :to => :complete, :do => :assign_default_addresses!
+
+    before_transition :to => :complete, :do => :apply_free_shipping_promotions
+    before_transition :to => :complete, :do => :create_tax_charge!
+    before_transition :to => :complete, :do => :persist_user_address!
 
     after_transition :to => :complete, :do => :finalize!
     after_transition :from => :canceled, :do => :after_resume

@@ -1,0 +1,15 @@
+table
+  thead
+    tr
+      th Адрес
+      th Ссылка на карту
+      th
+      th
+
+  tbody
+    - addresses.each do |spree_admin_pickup_address|
+      tr
+        td = spree_admin_pickup_address.address
+        td = spree_admin_pickup_address.link_to_map
+        td = link_to_edit spree_admin_pickup_address
+        td = link_to_delete spree_admin_pickup_address, data: {:confirm => 'Вы уверены?'}, :method => :delete

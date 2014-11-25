@@ -1,0 +1,16 @@
+= form_for ([:admin, @pickup_address]) do |f|
+  - if @pickup_address.errors.any?
+    #error_explanation
+      h2
+        | Обнаруженые следующие ошибки:
+      ul
+        - @pickup_address.errors.full_messages.each do |message|
+          li = message
+
+  .field
+    = f.label 'Адрес'
+    = f.text_area :address
+  .field
+    = f.label 'Ссылка на карту'
+    = f.text_field :link_to_map
+  .actions = f.submit 'Сохранить'

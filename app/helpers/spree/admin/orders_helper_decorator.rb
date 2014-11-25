@@ -20,4 +20,8 @@ Spree::Admin::OrdersHelper.class_eval do
   def another_discounts(order)
     order.adjustments.select {|p| p.source.nil? or p.source.type != 'Spree::Promotion::Actions::PersonalDiscountPromotion'}
   end
+
+  def pickup_address_by_id(id)
+    Spree::PickupAddress.find_by_id(id).address rescue '-'
+  end
 end

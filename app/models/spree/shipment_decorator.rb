@@ -169,6 +169,11 @@ Spree::Shipment.class_eval do
     shipment_method_id('default_shipping')
   end
 
+  def self.get_default
+    new
+    shipment_method_id('default_shipping')
+  end
+
   private
 
     def self.shipment_method_id(key)
