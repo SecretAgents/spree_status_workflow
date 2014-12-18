@@ -1,18 +1,19 @@
 Spree::OrdersController.class_eval do
 
   def update
-    phone = retrieve_phone
-    if (phone =~ /^\+7\d{10}$/).nil?
-      flash[:error] = 'Неверно введён телефон.'
-      redirect_to cart_path and return
-    end
-    if phone.nil?
-      flash[:error] = 'Ошибка оформления заказа. Пожалуйста, введите номер Вашего телефона.'
-      redirect_to cart_path and return
+    if params[:fast_order].present? or params[:checkout].present?
+      phone = retrieve_phone
+      if (phone =~ /^\+7\d{10}$/).nil?
+        flash[:error] = 'Неверно введён телефон.'
+        redirect_to cart_path and return
+      end
+      if phone.nil?
+        flash[:error] = 'Ошибка оформления заказа. Пожалуйста, введите номер Вашего телефона.'
+        redirect_to cart_path and return
+      end
     end
 
     if params[:fast_order].present?
-
       if complete_fast_order phone
         redirect_to order_path(@order)
       else
@@ -21,19 +22,17 @@ Spree::OrdersController.class_eval do
       end
     elsif @order.contents.update_cart(order_params)
       respond_with(@order) do |format|
-        format.html do
-          if params.has_key?(:checkout)
-            @order.assign_by_phone phone
-            authenticate_user_if_needed @order.user
-            @order.add_payment_if_needed!
-            @order.set_type :site
-            @order.order if @order.cart?
-            redirect_to checkout_state_path(@order.checkout_steps.first)
-          else
-            respond_with(@order)
-          end
+        if params.has_key?(:checkout)
+          @order.assign_by_phone phone
+          authenticate_user_if_needed @order.user
+          @order.add_payment_if_needed!
+          @order.set_type :site
+          @order.order if @order.cart?
+          format.html { redirect_to checkout_state_path(@order.checkout_steps.first) }
+          format.js
+        else
+          respond_with(@order)
         end
-        format.js
       end
     else
       respond_with(@order)
@@ -89,44 +88,44 @@ Spree::OrdersController.class_eval do
   end
 
   private
-    def authenticate_user_if_needed(user)
-      if flash['order_completed'] && user
-        # Раскомментировать, если хотим сразу залогинить вновь созданного пользователя:
-        set_flash_message(:notice, :signed_up)
-        sign_in(:spree_user, user)
-        session[:spree_user_signup] = true
+  def authenticate_user_if_needed(user)
+    if flash['order_completed'] && user
+      # Раскомментировать, если хотим сразу залогинить вновь созданного пользователя:
+      set_flash_message(:notice, :signed_up)
+      sign_in(:spree_user, user)
+      session[:spree_user_signup] = true
+    end
+  end
+
+  def retrieve_phone
+    phone = nil
+    unless params[:phone].nil?
+      if params[:phone_code] != '' && params[:phone] != ''
+        phone = ['+7', params[:phone_code], params[:phone]].join('')
       end
     end
+    phone
+  end
 
-    def retrieve_phone
-      phone = nil
-      unless params[:phone].nil?
-        if params[:phone_code] != '' && params[:phone] != ''
-          phone = ['+7', params[:phone_code], params[:phone]].join('')
-        end
-      end
-      phone
+  def complete_fast_order(phone)
+
+    @order.assign_by_phone phone
+    authenticate_user_if_needed @order.user
+    @order.add_payment_if_needed!
+    @order.set_type :express
+    @order.state = 'cart' unless @order.cart?
+
+    @order.complete
+
+    if @order.completed?
+      @current_order = nil
+      session[:order_id] = nil
+      flash.notice = Spree.t(:order_processed_successfully)
+      flash['order_completed'] = true
+      return true
+    else
+      return false
     end
-
-    def complete_fast_order(phone)
-
-      @order.assign_by_phone phone
-      authenticate_user_if_needed @order.user
-      @order.add_payment_if_needed!
-      @order.set_type :express
-      @order.state = 'cart' unless @order.cart?
-
-      @order.complete
-
-      if @order.completed?
-        @current_order = nil
-        session[:order_id] = nil
-        flash.notice = Spree.t(:order_processed_successfully)
-        flash['order_completed'] = true
-        return true
-      else
-        return false
-      end
-    end
+  end
 
 end

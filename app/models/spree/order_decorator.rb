@@ -274,6 +274,18 @@ Spree::Order.class_eval do
     save
   end
 
+  def phone
+    if !self.bill_address.nil? and self.bill_address.phone =~ /\A\+7\d{10}\z/
+      self.bill_address.phone
+    else
+      if !self.user.nil? and self.user.phone =~ /\A\+7\d{10}\z/
+        self.user.phone
+      else
+        ''
+      end
+    end
+  end
+
   def after_cancel
     shipments.each { |shipment| shipment.cancel! unless shipment.canceled? }
     #payments.completed.each { |payment| payment.credit! }
